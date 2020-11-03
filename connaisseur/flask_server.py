@@ -3,11 +3,16 @@ import traceback
 import logging
 from flask import Flask, request, jsonify
 from requests.exceptions import HTTPError
-from connaisseur.exceptions import BaseConnaisseurException, UnknownVersionError
+from connaisseur.exceptions import (
+    BaseConnaisseurException,
+    UnknownVersionError,
+    AlertSendingError,
+)
 from connaisseur.mutate import admit, validate
 from connaisseur.notary_api import health_check
 from connaisseur.admission_review import get_admission_review
 import connaisseur.kube_api as api
+from connaisseur.alert import send_alerts, AlertCategories
 
 DETECTION_MODE = os.environ.get("DETECTION_MODE", "0") == "1"
 
@@ -18,17 +23,25 @@ sends its response back.
 """
 
 
+@APP.errorhandler(AlertSendingError)
+def handle_alert_sending_failure(err):
+    logging.error(err.message)
+    return err.message, 500
+
+
 @APP.route("/mutate", methods=["POST"])
 def mutate():
     """
     Handles the '/mutate' path and accepts CREATE and UPDATE requests.
     Sends its response back, which either denies or allows the request.
     """
+
     admission_request = request.json
     try:
         validate(admission_request)
         response = admit(admission_request)
     except BaseConnaisseurException as err:
+        send_alerts(AlertCategories.rejected.value, admission_request)
         logging.error(str(err))
         return jsonify(
             get_admission_review(
@@ -39,6 +52,7 @@ def mutate():
             )
         )
     except UnknownVersionError as err:
+        send_alerts(AlertCategories.rejected.value, admission_request)
         logging.error(str(err))
         return jsonify(
             get_admission_review(
@@ -49,6 +63,7 @@ def mutate():
             )
         )
     except Exception:
+        send_alerts(AlertCategories.rejected.value, admission_request)
         logging.error(traceback.format_exc())
         return jsonify(
             get_admission_review(
@@ -58,6 +73,7 @@ def mutate():
                 detection_mode=DETECTION_MODE,
             )
         )
+    send_alerts(AlertCategories.admitted.value, admission_request)
     return jsonify(response)
 
 

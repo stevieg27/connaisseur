@@ -55,3 +55,14 @@ class UnknownVersionError(Exception):
 
 class AmbiguousDigestError(BaseConnaisseurException):
     pass
+
+
+class AlertSendingError(Exception):
+
+    message: str
+    status_code: int
+
+    def __init__(self, message):
+        super().__init__(self)
+        self.message = message
+        self.status_code = 500
