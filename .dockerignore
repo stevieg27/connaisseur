@@ -1,0 +1,4 @@
+# ignore Markdown files
+*.md
+# ignore tests
+connaisseur/tests/
