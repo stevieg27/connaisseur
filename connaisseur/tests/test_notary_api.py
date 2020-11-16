@@ -61,16 +61,16 @@ targets2 = [
 
 
 @pytest.fixture
-def napi():
-    os.environ["IS_ACR"] = "0"
-    os.environ["SELFSIGNED_NOTARY"] = "1"
+def napi(monkeypatch):
+    monkeypatch.setenv("IS_ACR", "0")
+    monkeypatch.setenv("SELFSIGNED_NOTARY", "1")
     return notary_api
 
 
 @pytest.fixture
-def acrapi():
-    os.environ["IS_ACR"] = "1"
-    os.environ["SELFSIGNED_NOTARY"] = "1"
+def acrapi(monkeypatch):
+    monkeypatch.setenv("IS_ACR", "1")
+    monkeypatch.setenv("SELFSIGNED_NOTARY", "1")
     return notary_api
 
 
@@ -204,8 +204,8 @@ def test_health_check_acr(acrapi, mock_request, host: str, out: bool):
 
 
 @pytest.mark.parametrize("slfsig, out", [("1", True), ("0", False), ("", False)])
-def test_is_notary_selfsigned(napi, slfsig: str, out: bool):
-    os.environ["SELFSIGNED_NOTARY"] = slfsig
+def test_is_notary_selfsigned(napi, slfsig: str, out: bool, monkeypatch):
+    monkeypatch.setenv("SELFSIGNED_NOTARY", slfsig)
     assert napi.is_notary_selfsigned() == out
 
 
