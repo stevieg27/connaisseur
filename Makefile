@@ -1,7 +1,7 @@
 NAMESPACE = connaisseur
 IMAGE = $(IMAGE_NAME):$(TAG)
 IMAGE_NAME = securesystemsengineering/connaisseur
-TAG = v1.3.1
+TAG = v1.4.1
 
 .PHONY: all docker certs install unistall upgrade annihilate
 
@@ -17,7 +17,14 @@ certs:
 install: certs
 	kubectl create ns $(NAMESPACE) || true
 	kubectl config set-context --current --namespace $(NAMESPACE)
-	helm install connaisseur helm --wait
+	#
+	#=============================================
+	#
+	# The installation may last up to 5 minutes.
+	#
+	#=============================================
+	#
+	helm install connaisseur helm --atomic
 
 uninstall:
 	kubectl config set-context --current --namespace $(NAMESPACE)
