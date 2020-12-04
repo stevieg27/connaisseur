@@ -23,7 +23,7 @@ jobs:
           mkdir images
           docker save $(yq r helm/values.yaml 'deployment.image')
             -o images/${GITHUB_SHA}_image.tar
-          docker save $(yq r helm/values.yaml 'deployment.image' | cut -d ':' -f1):helm-hook)
+          docker save $(yq r helm/values.yaml 'deployment.image' | cut -d ':' -f1):helm-hook
             -o images/${GITHUB_SHA}_hook.tar
       - uses: actions/upload-artifact@v2
         with:
