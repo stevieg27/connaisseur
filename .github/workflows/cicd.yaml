@@ -20,9 +20,6 @@ jobs:
         run: make docker
       - name: Save images
         run: |
-          IMAGE=$(yq r helm/values.yaml 'deployment.image')
-          IMAGE_HOOK=$()
-
           mkdir images
           docker save $(yq r helm/values.yaml 'deployment.image')
             -o images/${GITHUB_SHA}_image.tar
