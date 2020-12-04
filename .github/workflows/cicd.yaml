@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build Connaisseur image
+      - name: Install yq
+        run: sudo snap install yq
+      - name: Build images
         run: |
           sed -i "s+TAG =.*+TAG = ${RELEASE_VERSION}+" Makefile
           sed -i "s+IMAGE_NAME =.*+IMAGE_NAME = ${RELEASE_IMAGE}+" Makefile
