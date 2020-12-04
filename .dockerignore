@@ -2,3 +2,5 @@
 *.md
 # ignore tests
 connaisseur/tests/
+# ignore img
+img/

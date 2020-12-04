@@ -28,6 +28,7 @@ jobs:
         with:
           name: images
           path: images
+          retention-days: 1
 
   black:
     runs-on: ubuntu-latest
