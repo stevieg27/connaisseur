@@ -17,15 +17,17 @@ jobs:
       - name: Install yq
         run: sudo snap install yq
       - name: Build images
-        run: |
-          sed -i "s+TAG =.*+TAG = ${RELEASE_VERSION}+" Makefile
-          sed -i "s+IMAGE_NAME =.*+IMAGE_NAME = ${RELEASE_IMAGE}+" Makefile
-          make docker
+        run: make docker
       - name: Save images
         run: |
+          IMAGE=$(yq r helm/values.yaml 'deployment.image')
+          IMAGE_HOOK=$()
+
           mkdir images
-          docker save ${RELEASE_IMAGE}:${RELEASE_VERSION} -o images/${GITHUB_SHA}_image.tar
-          docker save ${RELEASE_IMAGE}:helm-hook -o images/${GITHUB_SHA}_hook.tar
+          docker save $(yq r helm/values.yaml 'deployment.image')
+            -o images/${GITHUB_SHA}_image.tar
+          docker save $(yq r helm/values.yaml 'deployment.image' | cut -d ':' -f1):helm-hook)
+            -o images/${GITHUB_SHA}_hook.tar
       - uses: actions/upload-artifact@v2
         with:
           name: images
