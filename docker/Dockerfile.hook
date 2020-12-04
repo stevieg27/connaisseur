@@ -6,6 +6,10 @@ RUN apk add --no-cache curl && \
     mv ./kubectl /usr/local/bin/kubectl && \
     apk del curl
 
+# Harden image
+COPY docker/harden.sh /
+RUN sh /harden.sh && rm /harden.sh
+
 COPY scripts/helm_hook.sh /
 
 ENTRYPOINT ["ash", "/helm_hook.sh"]
