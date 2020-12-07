@@ -1,4 +1,3 @@
-import re
 import base64
 from connaisseur.image import Image
 from connaisseur.key_store import KeyStore
@@ -121,20 +120,20 @@ def process_chain_of_trust(host: str, image: Image, req_delegations: list):
         else:
             raise NotFoundException("could not find any delegations in trust data.")
 
-    # get a list from all `targets` fields from `targets.json` + delegation roles or
-    # just the delegation roles, should there be required delegation according to the
-    # policy
+    # if certain delegations are required, then only take the targets fields of those
+    # delegation JSONs. otherwise take the targets field of the targets JSON, as long as
+    # no delegations are defined in the targets JSON. in that case the targets field of
+    # the releases JSON will be used.
     if req_delegations:
         image_targets = [
             trust_data[target_role].signed.get("targets", {})
             for target_role in req_delegations
         ]
     else:
-        image_targets = [
-            trust_data[target_role].signed.get("targets", {})
-            for target_role in trust_data
-            if re.match("targets(/[^/\\s]+)?", target_role)
-        ]
+        if trust_data["targets"].has_delegations():
+            image_targets = [trust_data["targets/releases"].signed.get("targets", {})]
+        else:
+            image_targets = [trust_data["targets"].signed.get("targets", {})]
 
     if not any(image_targets):
         raise NotFoundException("could not find any image digests in trust data.")
