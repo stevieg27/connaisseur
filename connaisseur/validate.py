@@ -120,20 +120,20 @@ def process_chain_of_trust(host: str, image: Image, req_delegations: list):
         else:
             raise NotFoundException("could not find any delegations in trust data.")
 
-    # if certain delegations are required, then only take the targets fields of those
-    # delegation JSONs. otherwise take the targets field of the targets JSON, as long as
-    # no delegations are defined in the targets JSON. in that case the targets field of
-    # the releases JSON will be used.
+    # if certain delegations are required, then only take the targets fields of the
+    # required delegation JSON's. otherwise take the targets field of the targets JSON, as
+    # long as no delegations are defined in the targets JSON. should there be delegations
+    # defined in the targets JSON the targets field of the releases JSON will be used.
     if req_delegations:
         image_targets = [
             trust_data[target_role].signed.get("targets", {})
             for target_role in req_delegations
         ]
     else:
-        if trust_data["targets"].has_delegations():
-            image_targets = [trust_data["targets/releases"].signed.get("targets", {})]
-        else:
-            image_targets = [trust_data["targets"].signed.get("targets", {})]
+        targets_key = (
+            "targets/releases" if trust_data["targets"].has_delegations() else "targets"
+        )
+        image_targets = [trust_data[targets_key].signed.get("targets", {})]
 
     if not any(image_targets):
         raise NotFoundException("could not find any image digests in trust data.")
